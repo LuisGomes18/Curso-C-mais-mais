@@ -19,15 +19,20 @@ jobs:
     - name: Compile all .cpp files
       run: |
         mkdir -p build  # Cria diretório build, se não existir
+        echo "Compilando arquivos .cpp..."
         for file in *.cpp; do
           filename=$(basename "$file" .cpp)  # Extrai o nome do arquivo sem a extensão
-          g++ -o "build/$filename" "$file"  # Compila o arquivo .cpp para o executável com o mesmo nome
+          echo "Compilando $file para build/$filename"
+          g++ -o "build/$filename" "$file" || exit 1  # Compila e sai se houver erro
         done
+
+    - name: List executables
+      run: ls build  # Lista os executáveis gerados para verificação
 
     - name: Upload artifacts for release
       uses: actions/upload-artifact@v3
       with:
-        name: executáveis  # Nome do artefato (pode ser alterado como desejar)
+        name: executáveis  # Nome do artefato
         path: build/*  # Caminho de todos os executáveis gerados
 
   create_release:
@@ -39,7 +44,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}  # Usa o nome do tag como nome da release
-        name: "Release ${{ github.ref }}"  # Personaliza o nome da release
+        name: "Release ${{ github.ref }}"  # Nome da release
         body: "Descrição da Release para o tag ${{ github.ref }}"
         files: build/*  # Carrega todos os executáveis da pasta build para a release
       env:
